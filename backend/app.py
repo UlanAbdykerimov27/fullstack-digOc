@@ -38,14 +38,33 @@ def get_data():
 @app.route('/api/data', methods=['POST'])
 def add_data():
     data = request.json
+
+    if not data or 'name' not in data:
+        return jsonify({"error": "Name is required"}), 400
+
     conn = get_db_connection()
+
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
     cur = conn.cursor()
-    cur.execute("INSERT INTO items (name) VALUES (%s) RETURNING id;", (data['name'],))
+
+    cur.execute(
+        "INSERT INTO items (name) VALUES (%s) RETURNING id;",
+        (data['name'],)
+    )
+
     new_id = cur.fetchone()[0]
+
     conn.commit()
+
     cur.close()
     conn.close()
-    return jsonify({"id": new_id, "name": data['name']}), 201
+
+    return jsonify({
+        "id": new_id,
+        "name": data['name']
+    }), 201
 
 @app.route('/api/data/<int:item_id>', methods=['DELETE'])
 def delete_data(item_id):
