@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лабораторная - Аман</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 { margin: 0 0 10px 0; color: #2d3748; font-size: 24px; text-align: center; }
+    h2 { margin: 0 0 30px 0; color: #718096; font-size: 16px; font-weight: normal; text-align: center; }
+    .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+    input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      outline: none;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #667eea; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+    button:hover { background: #5a67d8; }
+    button:active { transform: scale(0.95); }
+    ul { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
+    li {
+      background: #f7fafc;
+      padding: 12px 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      color: #4a5568;
+      border-left: 4px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Студент: Аман</h1>
+    <h2>ID: 12345</h2>
+    <div class="input-group">
+      <input type="text" id="dataInput" placeholder="Введите новую запись...">
+      <button id="addBtn">Добавить</button>
+    </div>
+    <ul id="list"></ul>
+  </div>
+
+  <script type="module">
+    const API_URL = import.meta.env.VITE_API_URL || '';
+    
+    const input = document.getElementById('dataInput');
+    const btn = document.getElementById('addBtn');
+    const list = document.getElementById('list');
+
+    async function fetchRecords() {
+      try {
+        const res = await fetch(`${API_URL}/api/data`);
+        const data = await res.json();
+        list.innerHTML = '';
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item.data || item.text || item.content || JSON.stringify(item);
+          list.appendChild(li);
+        });
+      } catch (e) {
+        console.error('Ошибка загрузки списка:', e);
+      }
+    }
+
+    async function addRecord() {
+      const text = input.value.trim();
+      if (!text) return;
+      
+      try {
+        await fetch(`${API_URL}/api/data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: text }) 
+        });
+        input.value = '';
+        fetchRecords();
+      } catch (e) {
+        console.error('Ошибка добавления:', e);
+        alert('Не удалось добавить запись.');
+      }
+    }
+
+    btn.addEventListener('click', addRecord);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addRecord();
+    });
+
+    fetchRecords();
+  </script>
+</body>
+</html>
